@@ -1,4 +1,3 @@
-import z3
 
 def transpiled(a):
 
@@ -43,4 +42,75 @@ def with_z3():
     constrs += [a < 8 ** 16]
     print(z3.solve(constrs))
 
-with_z3()
+# with_z3()
+
+def fast_search():
+    with open("input.txt") as f:
+        src = f.read()
+    nums = list(map(int, src.strip().split()[-1].split(",")))
+
+    def interpret(a):
+        pc, b, c = 0, 0, 0
+        out, out_sh = 0, 0
+        while pc < len(nums):
+            def comb():
+                nonlocal pc
+                v = nums[pc]
+                pc += 1
+                if v < 4: return v
+                if v == 4: return a
+                if v == 5: return b
+                if v == 6: return c
+                assert False
+            def lit():
+                nonlocal pc
+                v = nums[pc]
+                pc += 1
+                return v
+
+            if nums[pc] == 0:
+                pc += 1
+                a >>= comb()
+            elif nums[pc] == 1:
+                pc += 1
+                b ^= lit()
+            elif nums[pc] == 2:
+                pc += 1
+                b = comb() % 8
+            elif nums[pc] == 3:
+                pc += 1
+                dst = lit()
+                if a: pc = dst
+            elif nums[pc] == 4:
+                pc += 1
+                lit()
+                b ^= c
+            elif nums[pc] == 5:
+                pc += 1
+                out += (comb() % 8) << out_sh
+                out_sh += 3
+            elif nums[pc] == 6:
+                pc += 1
+                b = a >> comb()
+            elif nums[pc] == 7:
+                pc += 1
+                c = a >> comb()
+        return out
+
+    exp = sum(d << (i * 3) for i, d in enumerate(nums))
+
+    possible = [0]
+
+    for i in reversed(range(16)):
+        new = []
+        for j in range(8):
+            for n in possible:
+                inp = n + (j << i * 3)
+                mask = (-1 << i * 3) & (8**16-1)
+                if interpret(inp) & mask == exp & mask:
+                    new += [inp]
+        possible = new
+        print(len(possible))
+    print(min(possible))
+
+fast_search()
