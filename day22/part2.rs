@@ -6,7 +6,7 @@ fn main() {
     let mut line = String::new();
 
     let mut total_for = vec![0_u16; 19_usize.pow(4)];
-    let mut seen = vec![false; 19_usize.pow(4)];
+    let mut seen = vec![0_u32; (19_usize.pow(4) + 31) / 32];
 
     let hash = |diffs: [i8; 4]| {
         (diffs[0] as usize + 9) * 19_usize.pow(3)
@@ -20,7 +20,7 @@ fn main() {
 
         let mut hist = [0; 4];
         for n in seen.iter_mut() {
-            *n = false;
+            *n = 0;
         }
 
         for i in 0..2000 {
@@ -32,8 +32,8 @@ fn main() {
             hist.rotate_left(1);
             hist[3] = new as i8 - last as i8;
             let hash = hash(hist);
-            if i >= 3 && !seen[hash] {
-                seen[hash] = true;
+            if i >= 3 && seen[hash >> 5] & (1 << (hash & 31)) == 0 {
+                seen[hash >> 5] |= 1 << (hash & 31);
                 total_for[hash] += new as u16;
             }
         }
