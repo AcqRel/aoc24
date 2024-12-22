@@ -1,18 +1,28 @@
-use std::collections::HashMap;
 use std::io::BufRead;
+use std::iter::zip;
 
 fn main() {
     let mut stdin = std::io::stdin().lock();
     let mut line = String::new();
 
-    let mut total_for = HashMap::new();
-    let mut score_for = HashMap::new();
+    let mut total_for = vec![0_u16; 19_usize.pow(4)];
+    let mut seen = vec![false; 19_usize.pow(4)];
+
+    let hash = |diffs: [i8; 4]| {
+        (diffs[0] as usize + 9) * 19_usize.pow(3)
+            + (diffs[1] as usize + 9) * 19_usize.pow(2)
+            + (diffs[2] as usize + 9) * 19_usize.pow(1)
+            + (diffs[3] as usize + 9) * 19_usize.pow(0)
+    };
 
     while stdin.read_line(&mut line).unwrap() != 0 {
         let mut n: u32 = line.trim().parse().unwrap();
 
-        score_for.clear();
         let mut hist = [0; 4];
+        for n in seen.iter_mut() {
+            *n = false;
+        }
+
         for i in 0..2000 {
             let last = n % 10;
             n ^= 16777215 & (n << 6);
@@ -21,16 +31,14 @@ fn main() {
             let new = n % 10;
             hist.rotate_left(1);
             hist[3] = new as i8 - last as i8;
-            if i >= 3 {
-                score_for.entry(hist).or_insert(new as u8);
+            let hash = hash(hist);
+            if i >= 3 && !seen[hash] {
+                seen[hash] = true;
+                total_for[hash] += new as u16;
             }
-        }
-
-        for (&chunk, &score) in &score_for {
-            *total_for.entry(chunk).or_insert(0_u32) += score as u32;
         }
 
         line.clear();
     }
-    println!("{}", total_for.values().max().unwrap());
+    println!("{}", total_for.iter().max().unwrap());
 }
