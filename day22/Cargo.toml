@@ -10,3 +10,6 @@ path = "./part1.rs"
 [[bin]]
 name = "part2"
 path = "./part2.rs"
+
+[dependencies]
+rayon = "1.10.0"
