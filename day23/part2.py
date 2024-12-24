@@ -10,7 +10,6 @@ for a, b in lines:
 cliques = set(map(tuple, lines))
 
 while True:
-    print(cliques)
     new_cliques = set()
     for cli in cliques:
         for n in neighbours[cli[0]]:
